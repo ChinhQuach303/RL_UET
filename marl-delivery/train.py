@@ -10,7 +10,7 @@ from env import Environment
 from greedyagent import GreedyAgents
 from dqn_agent import DQNAgent
 
-def train(env, agent, num_episodes=100, max_steps=50, target_update=10, state_size=None, bfs_prob=0.3, 
+def train(env, agent, num_episodes=1000, max_steps=50, target_update=10, state_size=None, bfs_prob=0.3, 
           min_robots=1, max_robots=5, min_packages=2, max_packages=10):
     episode_rewards = []
     delivery_rates = []
@@ -338,4 +338,7 @@ def main(map_file='map1.txt', max_robots=5, max_packages=10, max_time_steps=50):
     print(f"\nTraining metrics saved to 'training_metrics_{map_name}.png'")
 
 if __name__ == "__main__":
-    main(max_robots=5, max_packages=10)
+    map_files = ['map.txt'] + [f'map{i}.txt' for i in range(1, 6)]
+    for map_file in map_files:
+        print(f"Đang chạy với {map_file}")
+        main(map_file=map_file, max_robots=5, max_packages=10)
