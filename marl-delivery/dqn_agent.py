@@ -59,7 +59,7 @@ class DQNAgent:
     def select_action(self, state, bfs_action=None, bfs_prob=0.2):
         if bfs_action is not None and random.random() < bfs_prob:
             return bfs_action
-        state = torch.FloatTensor(state).unsqueeze(0).to(self.device)
+        state = torch.FloatTensor(np.array(state)).unsqueeze(0).to(self.device)
         if random.random() > self.epsilon:
             with torch.no_grad():
                 movement_q = self.movement_net(state)
@@ -77,34 +77,37 @@ class DQNAgent:
         if len(self.memory) < self.batch_size:
             return
             
+        # Lấy mẫu và chuyển đổi sang numpy array một lần
         transitions = random.sample(self.memory, self.batch_size)
-        state_batch, action_batch, next_state_batch, reward_batch, done_batch = zip(*transitions)
+        batch = list(zip(*transitions))
+        
+        # Tối ưu hóa chuyển đổi sang tensor
+        state_batch = torch.FloatTensor(np.array(batch[0])).to(self.device)
+        next_state_batch = torch.FloatTensor(np.array(batch[2])).to(self.device)
+        reward_batch = torch.FloatTensor(np.array(batch[3], dtype=np.float32)).to(self.device)
+        done_batch = torch.FloatTensor(np.array(batch[4], dtype=np.float32)).to(self.device)
 
-        state_batch = torch.FloatTensor(state_batch).to(self.device)
-        next_state_batch = torch.FloatTensor(next_state_batch).to(self.device)
-        reward_batch = torch.FloatTensor(reward_batch).to(self.device)
-        done_batch = torch.FloatTensor(done_batch).to(self.device)
-
-        # Split actions into movement and package actions
+        # Xử lý actions riêng để tối ưu
+        action_batch = batch[1]
         movement_actions = torch.LongTensor([a[0] for a in action_batch]).to(self.device)
         package_actions = torch.LongTensor([a[1] for a in action_batch]).to(self.device)
 
-        # Get current Q values
+        # Tính toán Q values hiện tại
         movement_q_values = self.movement_net(state_batch).gather(1, movement_actions.unsqueeze(1)).squeeze(1)
         package_q_values = self.package_net(state_batch).gather(1, package_actions.unsqueeze(1)).squeeze(1)
 
-        # Get next Q values
+        # Tính toán Q values mục tiêu
         with torch.no_grad():
             next_movement_q = self.target_movement_net(next_state_batch).max(1)[0]
             next_package_q = self.target_package_net(next_state_batch).max(1)[0]
             target_q_values = reward_batch + self.gamma * (next_movement_q + next_package_q) * (1 - done_batch)
 
-        # Compute loss
+        # Tính toán loss
         movement_loss = nn.MSELoss()(movement_q_values, target_q_values)
         package_loss = nn.MSELoss()(package_q_values, target_q_values)
         loss = movement_loss + package_loss
 
-        # Optimize
+        # Tối ưu hóa
         self.optimizer.zero_grad()
         loss.backward()
         # Gradient clipping
@@ -112,6 +115,7 @@ class DQNAgent:
         torch.nn.utils.clip_grad_norm_(self.package_net.parameters(), 1.0)
         self.optimizer.step()
 
+        # Giảm epsilon
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
 
