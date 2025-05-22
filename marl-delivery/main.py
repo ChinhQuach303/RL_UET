@@ -13,7 +13,7 @@ from env import Environment
 from greedyagent import GreedyAgents
 from dqn_agent import DQNAgent
 import argparse
-def train(env, agent, num_episodes=200, max_steps=50, target_update=10, state_size=None, bfs_prob=0.3, 
+def train(env, agent, num_episodes=100, max_steps=50, target_update=10, state_size=None, bfs_prob=0.3, 
           min_robots=1, max_robots=5, min_packages=2, max_packages=10):
     episode_rewards = []
     delivery_rates = []
@@ -172,41 +172,7 @@ def train(env, agent, num_episodes=200, max_steps=50, target_update=10, state_si
         'pickups_completed': pickups_completed,
         'deliveries_completed': deliveries_completed
     }
-def plot_metrics(metrics, map_name):
-    plt.figure(figsize=(15, 12))
-    plt.subplot(3, 2, 1)
-    plt.plot(metrics['episode_rewards'])
-    plt.title(f'Episode Rewards ({map_name})')
-    plt.xlabel('Episode')
-    plt.ylabel('Reward')
-    
-    plt.subplot(3, 2, 2)
-    plt.plot(metrics['delivery_rates'])
-    plt.title(f'Delivery Rates ({map_name})')
-    plt.xlabel('Episode')
-    plt.ylabel('Rate')
-    
-    plt.subplot(3, 2, 3)
-    plt.plot(metrics['total_distances'])
-    plt.title(f'Total Distances ({map_name})')
-    plt.xlabel('Episode')
-    plt.ylabel('Distance')
-    
-    plt.subplot(3, 2, 4)
-    plt.plot(metrics['pickups_completed'])
-    plt.title(f'Pickups Completed ({map_name})')
-    plt.xlabel('Episode')
-    plt.ylabel('Count')
-    
-    plt.subplot(3, 2, 5)
-    plt.plot(metrics['deliveries_completed'])
-    plt.title(f'Deliveries Completed ({map_name})')
-    plt.xlabel('Episode')
-    plt.ylabel('Count')
-    
-    plt.tight_layout()
-    plt.savefig(f'training_metrics_{map_name}.png')
-    plt.close()
+
 
 def main(map_file='map.txt', max_robots=5, max_packages=10, max_time_steps=50):
     env = Environment(
@@ -268,22 +234,8 @@ def main(map_file='map.txt', max_robots=5, max_packages=10, max_time_steps=50):
         )
     
     end_time = time.time()
-    
-    # Print only the training summary
-    print("\nTraining Summary:")
-    print(f"Total training time: {end_time - start_time:.2f} seconds")
-    print(f"Average reward: {np.mean(metrics['episode_rewards']):.2f}")
-    print(f"Best reward: {np.max(metrics['episode_rewards']):.2f}")
-    print(f"Final delivery rate: {metrics['delivery_rates'][-1]:.2f}")
-    print(f"Total pickups: {sum(metrics['pickups_completed'])}")
-    print(f"Total deliveries: {sum(metrics['deliveries_completed'])}")
-    
-    map_name = map_file.replace('.txt', '')
-    plot_metrics(metrics, map_name)
-    print(f"\nTraining metrics saved to 'training_metrics_{map_name}.png'")
 
 if __name__ == "__main__":
-    if __name__ == "__main__":
     # Set up argument parser
         parser = argparse.ArgumentParser(description="Run DQN training with specified parameters")
         parser.add_argument("--seed", type=int, default=10, help="Random seed for reproducibility")
