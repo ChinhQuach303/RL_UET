@@ -12,6 +12,7 @@ import os
 from env import Environment
 from greedyagent import GreedyAgents
 from dqn_agent import DQNAgent
+import argparse
 def train(env, agent, num_episodes=200, max_steps=50, target_update=10, state_size=None, bfs_prob=0.3, 
           min_robots=1, max_robots=5, min_packages=2, max_packages=10):
     episode_rewards = []
@@ -282,4 +283,26 @@ def main(map_file='map.txt', max_robots=5, max_packages=10, max_time_steps=50):
     print(f"\nTraining metrics saved to 'training_metrics_{map_name}.png'")
 
 if __name__ == "__main__":
-    main(max_robots=5, max_packages=10)
+    if __name__ == "__main__":
+    # Set up argument parser
+        parser = argparse.ArgumentParser(description="Run DQN training with specified parameters")
+        parser.add_argument("--seed", type=int, default=10, help="Random seed for reproducibility")
+        parser.add_argument("--max_time_steps", type=int, default=1000, help="Maximum time steps per episode")
+        parser.add_argument("--map", type=str, default="map.txt", help="Map file to use")
+        parser.add_argument("--num_agents", type=int, default=5, help="Number of robot agents")
+        parser.add_argument("--n_packages", type=int, default=10, help="Number of packages")
+
+        # Parse arguments
+        args = parser.parse_args()
+
+        # Set random seed for reproducibility
+        random.seed(args.seed)
+        np.random.seed(args.seed)
+        torch.manual_seed(args.seed)
+
+        main(
+            map_file=args.map,
+            max_robots=args.num_agents,
+            max_packages=args.n_packages,
+            max_time_steps=args.max_time_steps
+        )
